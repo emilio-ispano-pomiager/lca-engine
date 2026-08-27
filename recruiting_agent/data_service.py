@@ -13,13 +13,9 @@ from langsmith import traceable
 from .recruiting_records import JOB_POSTINGS, CANDIDATES, RECRUITER_IDS
 
 __all__ = [
-    "get_job_posting",
-    "get_candidate_record",
-    "fetch_work_history",
-    "fetch_education",
-    "fetch_skills",
-    "get_profile_from_db",
-    "save_profile_to_db",
+    "get_job_posting", "get_candidate_record",
+    "fetch_work_history", "fetch_education", "fetch_skills",
+    "get_profile_from_db", "save_profile_to_db",
     "get_recruiter",
 ]
 
