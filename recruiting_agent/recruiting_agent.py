@@ -1,9 +1,15 @@
 """Recruiting assistant agent.
 
-A deep agent (built with ``deepagents.create_deep_agent``) with
-seven tools - lookup_job_posting, build_candidate_profile, get_candidate, 
-get_current_recruiter, send_candidate_email, score_candidate, and 
-add_candidate_skill. The tools call the data-access layer in ``data_service`` for 
+A deep agent (built with ``deepagents.create_deep_agent``) with seven tools:
+ - lookup_job_posting,
+ - build_candidate_profile,
+ - get_candidate, 
+ - get_current_recruiter,
+ - send_candidate_email,
+ - score_candidate,
+ - add_candidate_skill.
+
+The tools call the data-access layer in ``data_service`` for 
 storage and retrieval.
 
 Configure credentials via environment variables or a .env file
@@ -34,7 +40,8 @@ from deepagents import create_deep_agent
 from . import data_service
 from .data_service import RECRUITER_IDS
 
-MODEL_NAME = "gpt-4o-mini"
+# MODEL_NAME = "gpt-4o-mini"
+MODEL_NAME = os.environ.get("OPENAI_MODEL")
 
 # ---------------------------------------------------------------------------
 # Job posting schema
