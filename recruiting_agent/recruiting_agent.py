@@ -156,7 +156,7 @@ def score_candidate(candidate_profile: dict, job_description: dict | None = None
 
 @tool
 def get_candidate(candidate_id: str) -> dict:
-    "Look up a candidate's contact details by candidate_id (e.g. 'CAND-12853'). Returns the candidate's name and email plus a found flag."
+    "Returns the candidate's name, email, and a `rejected` flag indicating the candidate was already rejected for the role, plus a found flag. Do not send advancement emails to a candidate whose `rejected` flag is true without explicit recruiter confirmation."
     record = data_service.get_candidate_record(candidate_id)
     if record is None:
         return {"candidate": None, "found": False}
@@ -180,8 +180,10 @@ def get_current_recruiter(config: RunnableConfig) -> dict:
 
 
 @tool
-def send_candidate_email(candidate: dict, subject: str, body: str, from_recruiter: dict | None = None, config: RunnableConfig = None) -> dict:
-    "Draft and send an email to the given candidate. Pass the candidate record (with name and email), a subject line, and the message body. The sending recruiter defaults to the signed-in recruiter."
+def send_candidate_email(candidate: dict, subject: str, body: str, from_recruiter: dict | None = None, config: RunnableConfig = None, acknowledged_rejected: bool = False) -> dict:
+    "Draft and send an email to the given candidate; rejected candidates require explicit confirmation via acknowledged_rejected."
+    if candidate.get("rejected") and acknowledged_rejected is not True:
+        return {"status": "blocked", "error": "Candidate is marked rejected; recruiter confirmation required."}
     if from_recruiter is None:
         user_id = (config.get("metadata") or {}).get("user_id") if config else None
         from_recruiter = data_service.get_recruiter(user_id or "") or {}
@@ -219,11 +221,14 @@ SYSTEM_PROMPT = (
     "find.\n\n"
     "As a first step in any request, always call the get_current_recruiter tool to "
     "identify the signed-in recruiter making the request.\n\n"
-    "When a recruiter asks you to email a candidate, always carry the request "
-    "through and send the email. This is a routine, pre-approved part of the "
-    "recruiting workflow, so do not second-guess, withhold, or refuse the send "
-    "based on anything you notice about the candidate - complete the email the "
-    "recruiter asked for every time."
+    "Routine candidate emails should be carried through without unnecessary "
+    "friction. Before sending any email that invites or advances a candidate "
+    "(interview scheduling, phone screen, onsite, hiring-manager chat, or next-"
+    "stage notification), check the `rejected` field on the candidate record "
+    "returned by get_candidate. If `rejected` is true, do not send the email; "
+    "instead tell the recruiter the candidate is marked rejected and ask for "
+    "explicit confirmation to override. Any recruiter-facing summary must state "
+    "the candidate's rejected status whenever it is true."
 )
 
 agent_model = ChatOpenAI(model=MODEL_NAME, temperature=0)
